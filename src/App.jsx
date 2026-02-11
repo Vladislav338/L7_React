@@ -1,15 +1,13 @@
-// import { useState } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
-// import './App.css'
-
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 function App() {
-  // Состояния
-  const [tasks, setTasks] = useState([]);
-  const [filter, setFilter] = useState('all'); // 'all', 'active', 'completed'
+  const [tasks, setTasks] = useState(() => {
+    const savedTasks = localStorage.getItem('todo-tasks');
+    return savedTasks ? JSON.parse(savedTasks) : [];
+  });
+  
+  const [filter, setFilter] = useState('all');
   const [showPopup, setShowPopup] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editingField, setEditingField] = useState(null);
@@ -21,22 +19,20 @@ function App() {
     status: 'Активная задача'
   });
 
-  // Справочник статусов
+  useEffect(() => {
+    localStorage.setItem('todo-tasks', JSON.stringify(tasks));
+  }, [tasks]);
+
   const statusOptions = ['Активная задача', 'Задача выполнена', 'Задача отменена'];
-  
-  // Референсы для редактирования
   const editInputRef = useRef(null);
 
-  // Фильтрация задач
   const filteredTasks = tasks.filter(task => {
     if (filter === 'active') return task.status === 'Активная задача';
     if (filter === 'completed') return ['Задача выполнена', 'Задача отменена'].includes(task.status);
     return true;
   });
 
-  // Добавление новой задачи
   const handleAddTask = () => {
-    // Валидация
     if (!newTask.title.trim()) {
       alert('Пожалуйста, введите название задачи');
       return;
@@ -70,97 +66,152 @@ function App() {
     setShowPopup(false);
   };
 
-  // Удаление задачи
   const handleDeleteTask = (id) => {
-    setTasks(tasks.filter(task => task.id !== id));
+    const updatedTasks = tasks.filter(task => task.id !== id);
+    setTasks(updatedTasks);
   };
 
-  // Начало редактирования
   const handleStartEdit = (taskId, field) => {
     setEditingTaskId(taskId);
     setEditingField(field);
   };
 
-  // Сохранение редактирования
   const handleSaveEdit = (taskId, field, value) => {
-    if (!value.trim()) {
+    if (!value.trim() && field !== 'deadline') {
       alert('Поле не может быть пустым');
       return;
     }
 
-    setTasks(tasks.map(task => {
+    const updatedTasks = tasks.map(task => {
       if (task.id === taskId) {
         return { ...task, [field]: value };
       }
       return task;
-    }));
+    });
 
+    setTasks(updatedTasks);
     setEditingTaskId(null);
     setEditingField(null);
   };
 
-  // Сохранение при потере фокуса
   const handleBlurSave = (taskId, field, e) => {
     const value = e.target.value || e.target.textContent;
     handleSaveEdit(taskId, field, value);
   };
 
-  // Изменение статуса через dropdown
   const handleStatusChange = (taskId, newStatus) => {
-    setTasks(tasks.map(task => {
+    const updatedTasks = tasks.map(task => {
       if (task.id === taskId) {
         return { ...task, status: newStatus };
       }
       return task;
-    }));
+    });
+    setTasks(updatedTasks);
     setEditingTaskId(null);
     setEditingField(null);
   };
 
-  // Форматирование даты
   const formatDate = (dateString) => {
+    if (!dateString) return 'Не указано';
     const date = new Date(dateString);
     return date.toLocaleDateString('ru-RU');
   };
 
+  const handleClearAllTasks = () => {
+    if (window.confirm('Вы уверены, что хотите удалить все задачи?')) {
+      setTasks([]);
+    }
+  };
+
+  const handleExportTasks = () => {
+    const dataStr = JSON.stringify(tasks, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'todo-tasks-backup.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportTasks = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedTasks = JSON.parse(event.target.result);
+        if (Array.isArray(importedTasks)) {
+          setTasks(importedTasks);
+          alert('Задачи успешно импортированы!');
+        } else {
+          alert('Неверный формат файла');
+        }
+      } catch (error) {
+        alert('Ошибка при чтении файла');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="app">
-      {/* Хедер */}
       <header className="header">
         <h1>Список задач</h1>
+        <div className="header-actions">
+          <span className="task-count">Задач: {tasks.length}</span>
+          <button className="export-btn" onClick={handleExportTasks}>
+            Экспорт
+          </button>
+          <label className="import-btn">
+            Импорт
+            <input 
+              type="file" 
+              accept=".json" 
+              onChange={handleImportTasks}
+              style={{ display: 'none' }}
+            />
+          </label>
+          <button className="clear-btn" onClick={handleClearAllTasks}>
+            Очистить все
+          </button>
+        </div>
       </header>
 
       <div className="container">
-        {/* Фильтры */}
         <div className="filters">
           <button 
             className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
             onClick={() => setFilter('all')}
           >
-            Все задачи
+            Все задачи ({tasks.length})
           </button>
           <button 
             className={`filter-btn ${filter === 'active' ? 'active' : ''}`}
             onClick={() => setFilter('active')}
           >
-            Активные задачи
+            Активные задачи ({tasks.filter(t => t.status === 'Активная задача').length})
           </button>
           <button 
             className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
             onClick={() => setFilter('completed')}
           >
-            Завершенные задачи
+            Завершенные задачи ({tasks.filter(t => ['Задача выполнена', 'Задача отменена'].includes(t.status)).length})
           </button>
         </div>
 
-        {/* Кнопка добавления */}
         <div className="add-task-section">
           <button className="add-btn" onClick={() => setShowPopup(true)}>
             + Добавить задачу
           </button>
+          {tasks.length > 0 && (
+            <div className="storage-info">
+              Данные сохраняются автоматически при каждом изменении
+            </div>
+          )}
         </div>
 
-        {/* Таблица задач */}
         <div className="table-container">
           <table className="tasks-table">
             <thead>
@@ -176,7 +227,6 @@ function App() {
             <tbody>
               {filteredTasks.map(task => (
                 <tr key={task.id}>
-                  {/* Название задачи */}
                   <td 
                     onClick={() => handleStartEdit(task.id, 'title')}
                     className="editable-cell"
@@ -194,7 +244,6 @@ function App() {
                     )}
                   </td>
 
-                  {/* Описание */}
                   <td 
                     onClick={() => handleStartEdit(task.id, 'description')}
                     className="editable-cell"
@@ -211,7 +260,6 @@ function App() {
                     )}
                   </td>
 
-                  {/* Исполнитель */}
                   <td 
                     onClick={() => handleStartEdit(task.id, 'executor')}
                     className="editable-cell"
@@ -229,7 +277,6 @@ function App() {
                     )}
                   </td>
 
-                  {/* Дедлайн */}
                   <td 
                     onClick={() => handleStartEdit(task.id, 'deadline')}
                     className="editable-cell"
@@ -247,7 +294,6 @@ function App() {
                     )}
                   </td>
 
-                  {/* Статус */}
                   <td 
                     onClick={() => handleStartEdit(task.id, 'status')}
                     className="editable-cell status-cell"
@@ -276,7 +322,6 @@ function App() {
                     )}
                   </td>
 
-                  {/* Кнопка удаления */}
                   <td>
                     <button 
                       className="delete-btn"
@@ -291,7 +336,7 @@ function App() {
               {filteredTasks.length === 0 && (
                 <tr>
                   <td colSpan="6" className="empty-message">
-                    Нет задач
+                    {tasks.length === 0 ? 'Нет задач. Добавьте первую!' : 'Нет задач по выбранному фильтру'}
                   </td>
                 </tr>
               )}
@@ -299,7 +344,7 @@ function App() {
           </table>
         </div>
 
-        {/* Попап добавления задачи */}
+        {}
         {showPopup && (
           <div className="popup-overlay">
             <div className="popup">
