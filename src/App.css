@@ -1,4 +1,4 @@
-/* Основные стили */
+
 * {
   margin: 0;
   padding: 0;
@@ -15,10 +15,8 @@ body {
 .app {
   min-height: 100vh;
   padding: 20px;
-  margin-left: 360px;
 }
 
-/* Хедер */
 .header {
   background-color: #fff;
   padding: 20px;
@@ -33,13 +31,13 @@ body {
   font-weight: 600;
 }
 
-/* Контейнер */
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Фильтры */
+
 .filters {
   display: flex;
   gap: 10px;
@@ -53,8 +51,7 @@ body {
 .filter-btn {
   padding: 10px 20px;
   border: 1px solid #ddd;
-  background: white;
-  color: black;
+  background: #007bff;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
@@ -62,9 +59,7 @@ body {
   transition: all 0.3s;
 }
 
-.filter-btn:hover {
-  background: #f0f0f0;
-}
+
 
 .filter-btn.active {
   background: #007bff;
@@ -72,7 +67,7 @@ body {
   border-color: #007bff;
 }
 
-/* Кнопка добавления */
+
 .add-task-section {
   margin-bottom: 20px;
 }
@@ -93,7 +88,7 @@ body {
   background: #218838;
 }
 
-/* Таблица */
+
 .table-container {
   background: white;
   border-radius: 8px;
@@ -127,7 +122,6 @@ body {
   background-color: #f8f9fa;
 }
 
-/* Ячейки для редактирования */
 .editable-cell {
   cursor: pointer;
   position: relative;
@@ -154,7 +148,7 @@ body {
   resize: vertical;
 }
 
-/* Бейджи статусов */
+
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
@@ -178,7 +172,7 @@ body {
   color: #721c24;
 }
 
-/* Кнопка удаления */
+
 .delete-btn {
   background: #dc3545;
   color: white;
@@ -200,7 +194,7 @@ body {
   padding: 40px !important;
 }
 
-/* Попап */
+
 .popup-overlay {
   position: fixed;
   top: 0;
@@ -297,16 +291,13 @@ body {
 .cancel-btn {
   padding: 10px 20px;
   border: 1px solid #ddd;
-  background: white;
+  background: #007bff;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
 }
 
-.cancel-btn:hover {
-  background: #f8f9fa;
-}
 
 .create-btn {
   padding: 10px 20px;
@@ -319,11 +310,6 @@ body {
   font-weight: 500;
 }
 
-.create-btn:hover {
-  background: #0056b3;
-}
-
-/* Адаптивность */
 @media (max-width: 768px) {
   .container {
     padding: 10px;
@@ -341,4 +327,53 @@ body {
   .popup {
     width: 95%;
   }
+}
+
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.task-count {
+  background: #f8f9fa;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.export-btn, .import-btn, .clear-btn {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background: #28a745;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.storage-info {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #28a745;
+  background: #d4edda;
+  padding: 8px 12px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+@keyframes savePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.saving {
+  animation: savePulse 0.5s ease-in-out;
 }
